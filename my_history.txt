@@ -1,0 +1,148 @@
+    1  lsblk -f
+    2  lsblk -o name,fstype,size,type,mountpoint
+    3  sudo apt update
+    4  sudo apt upgrade
+    5  sudo apt install openjdk-17-jdk-y
+    6  python --version
+    7  sudo apt install python3 python3-pip python3-venv -y
+    8  python --version
+    9  sudo apt install python3
+   10  python --version
+   11  python3 --version
+   12  sudo apt install python
+   13  sudo apt update
+   14  pip3 --version
+   15  sudo spt install openjdk-17-jdk -y
+   16  sudo apt install openjdk-17-jdk -y
+   17  java --version
+   18  sudo apt install git -y
+   19  git --version
+   20  sudo snap install code --classic
+   21  code --version
+   22  sudo apt install mysql-server -y
+   23  sudo systemctl start mysql
+   24  sudo systemctl enable mysql
+   25  sudo systemctl status mysql
+   26  sudo mysql
+   27  pip3 install notebook
+   28  sudo apt update
+   29  sudo apt install postgresql postgresql-contrib -y
+   30  psql --version
+   31  ps -p 43425 -o pid,cmd
+   32  sudo kill -9 43425
+   33  pwd
+   34  mkdir projects
+   35  cs projects/
+   36  cd projects/
+   37  mkdir weather_data_engineering
+   38  cd weather_data_engineering/
+   39  pyhton3 -m venv venv
+   40  python3 --version
+   41  python3 -m venv venv
+   42  source venv/bin/activate
+   43  pip install pyspark pandas requests sqlalchemy
+   44  pip install pyarrow matplotlib mysql-connector-python
+   45  pip freeze > requirements.txt
+   46  ls
+   47  cat requirements.txt 
+   48  mkdir -p data/raw
+   49  mkdir data/processed
+   50  mkdir notebooks
+   51  mkdir scripts
+   52  mkdir config logs
+   53  ls
+   54  mkdir tests
+   55  touch README.md .gitignore
+   56  ls
+   57  ls -lstr
+   58  ls -a 
+   59  touch scripts/extract.py transform.py
+   60  ls
+   61  rm transform.py 
+   62  ls
+   63  touch scripts/transform.py,load.py
+   64  ls
+   65  cd scripts/
+   66  ls
+   67  rm transform.py,load.py 
+   68  touch transform.py load.py main.py config.py
+   69  cd ..
+   70  cd -
+   71  ls
+   72  ls -lstr
+   73  cd ..
+   74  ls
+   75  ls -ls
+   76  tree
+   77  sudo apt install tree
+   78  tree
+   79  ls
+   80  tree -f
+   81  code .
+   82  python3 scripts/main.py 
+   83  touch .env
+   84  pip install python-dotenv
+   85  pip freeze > requirements.txt 
+   86  cat requirements.txt 
+   87  python3 scripts/extract.py 
+   88  ls
+   89  cd s
+   90  cd scripts/
+   91  ls
+   92  cat config.py 
+   93  rm config.py 
+   94  cd ..
+   95  mkdir config
+   96  ]ls
+   97  ls
+   98  cd config/
+   99  touch config.py
+  100  python3 scripts/extract.py
+  101  cd ..
+  102  python3 scripts/extract.py]
+  103  ls
+  104  python3 scripts/extract.py
+  105  ls config
+  106  cat scripts/extract.py
+  107  touch config/__init__.py
+  108  ls -la config
+  109  mv config/config.py config/settings.py
+  110  python3 scripts/extract.py
+  111  python3 -m scripts.extract
+  112  git --version
+  113  git init
+  114  git status
+  115  git add .
+  116  git commit -m "initial project setup"
+  117  git config --global user.name "ARULKINT"
+  118  git config --global user.email "aruldme004@gmail.com"
+  119  git config --global user.name "ARULKINT"
+  120  git config --global user.email "aruldme004@gmail.com"
+  121  git commit -m "initial project setup"
+  122  git branch -M main
+  123  git branch
+  124  git remote add origin https://github.com/<your-github-username>/weather_data_engineering.git
+  125  git push -u origin main
+  126  [200~https://github.com/ARULKINT/weather_data_eng.git
+  127  git remote add origin https://github.com/ARULKINT/weather_data_eng.git
+  128  git push -u origin main~
+  129  https://github.com/ARULKINT/weather_data_eng.git
+  130  git remote add origin https://github.com/ARULKINT/weather_data_eng.git
+  131  git push -u origin main
+  132  CAT .gitignore 
+  133  cat .gitignore 
+  134  git remote -v
+  135  echo "# Test" >> README.md
+  136  git status
+  137  git add .
+  138  git commit -m "test save"
+  139  git push
+  140  git config --global credential.helper
+  141  ls -la ~/.ssh
+  142  ssh-keygen -t ed25519 -C "aruldme004@gmail.com"
+  143  eval "$(ssh-agent -s)"
+  144  ssh-add ~/.ssh/id_ed25519
+  145  cat ~/.ssh/id_ed25519.pub
+  146  LS
+  147  ls
+  148  history > my_history.txt
