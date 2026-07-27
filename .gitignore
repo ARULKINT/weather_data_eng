@@ -1,0 +1,28 @@
+# Virtual Environment
+venv/
+
+# Environment Variables
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Logs
+logs/
+
+# macOS
+.DS_Store
+
+# PySpark temporary files
+.metastore_db/
+spark-warehouse/
+
+# Local databases (if you create them)
+*.db
