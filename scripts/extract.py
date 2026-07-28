@@ -120,14 +120,9 @@ def extract_weather():
         # Generate Timestamp Filename
         # --------------------------------------------------
 
-        timestamp = datetime.now().strftime(
-            "%Y%m%d_%H%M%S"
-        )
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        file_path = (
-            raw_directory /
-            f"weather_{timestamp}.json"
-        )
+        file_path = raw_directory / f"weather_{timestamp}.json"
 
         # --------------------------------------------------
         # Save JSON File

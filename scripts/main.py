@@ -84,7 +84,11 @@ def main():
 
         logger.info("Step 1 : Extract")
 
-        extract_weather()
+        raw_file_path = extract_weather()
+
+        # Stop pipeline if extraction fails
+        if raw_file_path is None:
+            raise RuntimeError("Weather extraction failed.")
 
         # --------------------------------------------------
         # Step 2 : Transform
@@ -92,7 +96,10 @@ def main():
 
         logger.info("Step 2 : Transform")
 
-        weather_df = transform_weather(spark)
+        weather_df = transform_weather(
+            spark,
+            raw_file_path
+        )
 
         # --------------------------------------------------
         # Step 3 : Load
