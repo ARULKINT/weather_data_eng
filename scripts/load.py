@@ -1,21 +1,25 @@
 """
 load.py
 
-Purpose:
---------
-This module is responsible for loading the transformed weather data
-into the PostgreSQL database.
+Purpose
+-------
+Load the transformed weather data into the PostgreSQL database.
 
-Responsibilities:
------------------
-1. Read the existing weather records from PostgreSQL.
-2. Compare incoming records with existing records.
-3. Remove duplicate records using Spark Left Anti Join.
-4. Insert only new records into PostgreSQL.
-5. Log the loading process and statistics.
+Responsibilities
+----------------
+1. Receive the transformed Spark DataFrame.
+2. Count the number of records to be inserted.
+3. Write all weather observations into PostgreSQL.
+4. Log every stage of the loading process.
+5. Handle and log database errors.
 
-Author: Arul
-Project: Weather Data Engineering Pipeline
+Author
+------
+Arul
+
+Project
+-------
+Weather Data Engineering Pipeline
 """
 
 # ==========================================================
@@ -31,14 +35,24 @@ from config.settings import DB_PROPERTIES, DB_URL
 from scripts.logger import logger
 
 
+# ==========================================================
+# Load Weather Data into PostgreSQL
+# ==========================================================
+
 def load_weather(weather_df):
     """
-    Load only new weather records into PostgreSQL.
+    Load transformed weather observations into PostgreSQL.
+
+    This function writes every transformed weather record
+    into the PostgreSQL database.
+
+    Since the project now supports historical weather storage,
+    every ETL execution is stored as a new observation.
 
     Parameters
     ----------
     weather_df : pyspark.sql.DataFrame
-        Transformed weather DataFrame.
+        Spark DataFrame containing transformed weather data.
 
     Returns
     -------
@@ -47,83 +61,32 @@ def load_weather(weather_df):
 
     try:
 
+        # ==================================================
+        # Start Loading Process
+        # ==================================================
+
         logger.info("Starting data loading process...")
 
         # ==================================================
-        # Read Existing PostgreSQL Table
-        # ==================================================
-
-        logger.info("Reading existing weather records from PostgreSQL...")
-
-        existing_df = (
-            weather_df.sparkSession.read
-            .format("jdbc")
-            .option("url", DB_URL)
-            .option("dbtable", "weather_data")
-            .option("user", DB_PROPERTIES["user"])
-            .option("password", DB_PROPERTIES["password"])
-            .option("driver", DB_PROPERTIES["driver"])
-            .load()
-        )
-
-        logger.info("Existing records loaded successfully.")
-
-        # ==================================================
-        # Columns Used For Duplicate Detection
-        # ==================================================
-
-        join_columns = [
-            "city",
-            "latitude",
-            "longitude",
-            "temperature",
-            "humidity",
-            "pressure",
-            "wind_speed",
-            "weather",
-            "description",
-        ]
-
-        # ==================================================
-        # Find Only New Records
-        # ==================================================
-
-        logger.info("Checking for duplicate records...")
-
-        new_weather_df = weather_df.join(
-            existing_df,
-            on=join_columns,
-            how="left_anti"
-        )
-
-        # ==================================================
-        # Record Statistics
+        # Count Incoming Records
         # ==================================================
 
         total_records = weather_df.count()
-        new_records = new_weather_df.count()
-        duplicate_records = total_records - new_records
 
-        logger.info(f"Incoming Records   : {total_records}")
-        logger.info(f"Duplicate Records : {duplicate_records}")
-        logger.info(f"New Records       : {new_records}")
+        logger.info(
+            f"Total records to insert: {total_records}"
+        )
 
         # ==================================================
-        # Skip Database Write If No New Records
+        # Write Data into PostgreSQL
         # ==================================================
 
-        if new_records == 0:
-            logger.info("No new records found. Skipping database load.")
-            return
-
-        # ==================================================
-        # Write Only New Records
-        # ==================================================
-
-        logger.info("Writing new records to PostgreSQL...")
+        logger.info(
+            "Writing weather records into PostgreSQL..."
+        )
 
         (
-            new_weather_df.write
+            weather_df.write
             .format("jdbc")
             .option("url", DB_URL)
             .option("dbtable", "weather_data")
@@ -134,11 +97,19 @@ def load_weather(weather_df):
             .save()
         )
 
+        # ==================================================
+        # Successful Load
+        # ==================================================
+
         logger.info(
-            f"Successfully inserted {new_records} new record(s) into PostgreSQL."
+            f"Successfully inserted {total_records} record(s) into PostgreSQL."
         )
 
     except Exception as error:
+
+        # ==================================================
+        # Log Database Error
+        # ==================================================
 
         logger.exception(
             f"Failed to load data into PostgreSQL: {error}"

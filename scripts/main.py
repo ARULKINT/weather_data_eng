@@ -4,21 +4,31 @@ File Name : main.py
 Project   : Weather Data Engineering Pipeline
 Author    : Arul G
 
-Purpose:
-    Orchestrate the complete ETL pipeline.
+Purpose
+-------
+Orchestrate the complete Weather ETL pipeline.
 
-Workflow:
-    Start Logger
+Responsibilities
+----------------
+1. Create a Spark Session.
+2. Extract weather data for all configured cities.
+3. Transform each raw JSON file.
+4. Load transformed data into PostgreSQL.
+5. Stop the Spark Session gracefully.
+
+Workflow
+--------
+Create Spark Session
         ↓
-    Create Spark Session
+Extract Weather Data
         ↓
-    Extract Weather Data
+Loop Through Extracted Files
         ↓
-    Transform Weather Data
+Transform Weather Data
         ↓
-    Load Data into PostgreSQL
+Load into PostgreSQL
         ↓
-    Stop Spark Session
+Stop Spark Session
 ============================================================
 """
 
@@ -44,7 +54,7 @@ from scripts.logger import logger
 
 def main():
     """
-    Execute the complete ETL pipeline.
+    Execute the complete Weather ETL pipeline.
     """
 
     logger.info("=" * 60)
@@ -55,9 +65,9 @@ def main():
 
     try:
 
-        # --------------------------------------------------
+        # ==================================================
         # Create Spark Session
-        # --------------------------------------------------
+        # ==================================================
 
         logger.info("Creating Spark Session...")
 
@@ -78,48 +88,66 @@ def main():
 
         logger.info("Spark Session created successfully.")
 
-        # --------------------------------------------------
+        # ==================================================
         # Step 1 : Extract
-        # --------------------------------------------------
+        # ==================================================
 
         logger.info("Step 1 : Extract")
 
-        raw_file_path = extract_weather()
+        raw_files = extract_weather()
 
-        # Stop pipeline if extraction fails
-        if raw_file_path is None:
-            raise RuntimeError("Weather extraction failed.")
+        if not raw_files:
+            raise RuntimeError(
+                "No weather files were extracted."
+            )
 
-        # --------------------------------------------------
-        # Step 2 : Transform
-        # --------------------------------------------------
-
-        logger.info("Step 2 : Transform")
-
-        weather_df = transform_weather(
-            spark,
-            raw_file_path
+        logger.info(
+            f"{len(raw_files)} weather file(s) extracted."
         )
 
-        # --------------------------------------------------
-        # Step 3 : Load
-        # --------------------------------------------------
+        # ==================================================
+        # Step 2 & 3 : Transform and Load
+        # ==================================================
 
-        logger.info("Step 3 : Load")
+        for raw_file in raw_files:
 
-        load_weather(weather_df)
+            logger.info("-" * 60)
+            logger.info(f"Processing: {raw_file.name}")
 
-        logger.info("ETL Pipeline completed successfully.")
+            # ----------------------------------------------
+            # Transform
+            # ----------------------------------------------
+
+            weather_df = transform_weather(
+                spark,
+                raw_file
+            )
+
+            # ----------------------------------------------
+            # Load
+            # ----------------------------------------------
+
+            load_weather(weather_df)
+
+            logger.info(
+                f"Finished processing {raw_file.name}"
+            )
+
+        logger.info("Weather ETL Pipeline completed successfully.")
 
     except Exception as error:
 
-        logger.exception(f"Pipeline failed: {error}")
+        logger.exception(
+            f"Pipeline failed: {error}"
+        )
+
+        raise
 
     finally:
 
-        # --------------------------------------------------
+        # ==================================================
         # Stop Spark Session
-        # --------------------------------------------------
+        # ==================================================
 
         if spark:
 

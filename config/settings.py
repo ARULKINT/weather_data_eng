@@ -51,3 +51,17 @@ DB_PROPERTIES = {
     "password": DB_PASSWORD,
     "driver": "org.postgresql.Driver",
 }
+
+# ==========================================================
+# Weather Locations
+# ==========================================================
+
+CITIES = [
+    "Chennai",
+    "Delhi",
+    "Mumbai",
+    "Bangalore",
+    "Hyderabad",
+    "Pune",
+    "Kolkata"
+]
