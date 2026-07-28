@@ -1,28 +1,58 @@
+# ==========================
 # Virtual Environment
+# ==========================
 venv/
+venv312/
 
+# ==========================
 # Environment Variables
+# ==========================
 .env
 
-# Python Cache
+# ==========================
+# Python
+# ==========================
 __pycache__/
 *.py[cod]
+*.so
 
+# ==========================
 # Jupyter
+# ==========================
 .ipynb_checkpoints/
 
+# ==========================
 # VS Code
+# ==========================
 .vscode/
 
+# ==========================
 # Logs
+# ==========================
 logs/
+*.log
 
-# macOS
-.DS_Store
+# ==========================
+# Raw Weather Data
+# Generated every ETL run
+# ==========================
+data/raw/*.json
 
-# PySpark temporary files
+# ==========================
+# Spark
+# ==========================
 .metastore_db/
 spark-warehouse/
 
-# Local databases (if you create them)
+# ==========================
+# Local Databases
+# ==========================
 *.db
+*.sqlite
+*.sqlite3
+
+# ==========================
+# Operating System
+# ==========================
+.DS_Store
+*~
