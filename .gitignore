@@ -56,3 +56,5 @@ spark-warehouse/
 # ==========================
 .DS_Store
 *~
+
+scripts/phase_2_st.txt
