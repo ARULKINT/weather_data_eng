@@ -6,29 +6,21 @@ Author    : Arul G
 
 Purpose
 -------
-Orchestrate the complete Weather ETL pipeline.
-
-Responsibilities
-----------------
-1. Create a Spark Session.
-2. Extract weather data for all configured cities.
-3. Transform each raw JSON file.
-4. Load transformed data into PostgreSQL.
-5. Stop the Spark Session gracefully.
+Execute the complete ETL and Data Warehouse pipeline.
 
 Workflow
 --------
-Create Spark Session
-        ↓
 Extract Weather Data
         ↓
-Loop Through Extracted Files
+Transform Data
         ↓
-Transform Weather Data
+Load Staging Table
         ↓
-Load into PostgreSQL
+Build dim_city
         ↓
-Stop Spark Session
+Build dim_weather
+        ↓
+Build fact_weather
 ============================================================
 """
 
@@ -47,27 +39,24 @@ from scripts.transform import transform_weather
 from scripts.load import load_weather
 from scripts.logger import logger
 
+from scripts.warehouse.dim_city import load_dim_city
+from scripts.warehouse.dim_weather import load_dim_weather
+from scripts.warehouse.fact_weather import load_fact_weather
+
 
 # ==========================================================
 # Main Function
 # ==========================================================
 
 def main():
-    """
-    Execute the complete Weather ETL pipeline.
-    """
 
-    logger.info("=" * 60)
-    logger.info("Weather ETL Pipeline Started")
-    logger.info("=" * 60)
+    logger.info("=" * 80)
+    logger.info("Weather Data Engineering Pipeline Started")
+    logger.info("=" * 80)
 
     spark = None
 
     try:
-
-        # ==================================================
-        # Create Spark Session
-        # ==================================================
 
         logger.info("Creating Spark Session...")
 
@@ -89,65 +78,87 @@ def main():
         logger.info("Spark Session created successfully.")
 
         # ==================================================
-        # Step 1 : Extract
+        # STEP 1 : EXTRACT
         # ==================================================
 
-        logger.info("Step 1 : Extract")
+        logger.info("=" * 80)
+        logger.info("STEP 1 : EXTRACT")
+        logger.info("=" * 80)
 
         raw_files = extract_weather()
 
         if not raw_files:
-            raise RuntimeError(
-                "No weather files were extracted."
-            )
+            raise RuntimeError("No weather files extracted.")
 
         logger.info(
-            f"{len(raw_files)} weather file(s) extracted."
+            "Extracted %d weather files.",
+            len(raw_files)
         )
 
         # ==================================================
-        # Step 2 & 3 : Transform and Load
+        # STEP 2 : TRANSFORM & LOAD STAGING
         # ==================================================
+
+        logger.info("=" * 80)
+        logger.info("STEP 2 : LOAD STAGING TABLE")
+        logger.info("=" * 80)
 
         for raw_file in raw_files:
 
-            logger.info("-" * 60)
-            logger.info(f"Processing: {raw_file.name}")
-
-            # ----------------------------------------------
-            # Transform
-            # ----------------------------------------------
+            logger.info("Processing %s", raw_file.name)
 
             weather_df = transform_weather(
                 spark,
                 raw_file
             )
 
-            # ----------------------------------------------
-            # Load
-            # ----------------------------------------------
-
             load_weather(weather_df)
 
-            logger.info(
-                f"Finished processing {raw_file.name}"
-            )
+        logger.info("Staging table loaded successfully.")
 
-        logger.info("Weather ETL Pipeline completed successfully.")
+        # ==================================================
+        # STEP 3 : BUILD DIM_CITY
+        # ==================================================
+
+        logger.info("=" * 80)
+        logger.info("STEP 3 : BUILD DIM_CITY")
+        logger.info("=" * 80)
+
+        load_dim_city(spark)
+
+        # ==================================================
+        # STEP 4 : BUILD DIM_WEATHER
+        # ==================================================
+
+        logger.info("=" * 80)
+        logger.info("STEP 4 : BUILD DIM_WEATHER")
+        logger.info("=" * 80)
+
+        load_dim_weather(spark)
+
+        # ==================================================
+        # STEP 5 : BUILD FACT_WEATHER
+        # ==================================================
+
+        logger.info("=" * 80)
+        logger.info("STEP 5 : BUILD FACT_WEATHER")
+        logger.info("=" * 80)
+
+        load_fact_weather(spark)
+
+        logger.info("=" * 80)
+        logger.info("PIPELINE COMPLETED SUCCESSFULLY")
+        logger.info("=" * 80)
 
     except Exception as error:
 
         logger.exception(
-            f"Pipeline failed: {error}"
+            "Pipeline failed: %s",
+            error
         )
-
         raise
 
     finally:
-
-        # ==================================================
-        # Stop Spark Session
-        # ==================================================
 
         if spark:
 
@@ -157,9 +168,9 @@ def main():
 
             logger.info("Spark Session stopped.")
 
-        logger.info("=" * 60)
-        logger.info("Weather ETL Pipeline Finished")
-        logger.info("=" * 60)
+        logger.info("=" * 80)
+        logger.info("Pipeline Finished")
+        logger.info("=" * 80)
 
 
 # ==========================================================
