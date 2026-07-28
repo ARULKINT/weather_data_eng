@@ -1,13 +1,135 @@
+"""
+============================================================
+File Name : main.py
+Project   : Weather Data Engineering Pipeline
+Author    : Arul G
+
+Purpose:
+    Orchestrate the complete ETL pipeline.
+
+Workflow:
+    Start Logger
+        ↓
+    Create Spark Session
+        ↓
+    Extract Weather Data
+        ↓
+    Transform Weather Data
+        ↓
+    Load Data into PostgreSQL
+        ↓
+    Stop Spark Session
+============================================================
+"""
+
+# ==========================================================
+# Third-Party Imports
+# ==========================================================
+
 from pyspark.sql import SparkSession
 
-spark = (
-    SparkSession.builder
-    .appName("Weather Data Engineering")
-    .master("local[*]")
-    .getOrCreate()
-)
+# ==========================================================
+# Local Imports
+# ==========================================================
 
-print("Spark Version:", spark.version)
+from scripts.extract import extract_weather
+from scripts.transform import transform_weather
+from scripts.load import load_weather
+from scripts.logger import logger
 
-spark.stop()
 
+# ==========================================================
+# Main Function
+# ==========================================================
+
+def main():
+    """
+    Execute the complete ETL pipeline.
+    """
+
+    logger.info("=" * 60)
+    logger.info("Weather ETL Pipeline Started")
+    logger.info("=" * 60)
+
+    spark = None
+
+    try:
+
+        # --------------------------------------------------
+        # Create Spark Session
+        # --------------------------------------------------
+
+        logger.info("Creating Spark Session...")
+
+        spark = (
+            SparkSession.builder
+            .appName("Weather Data Engineering Pipeline")
+            .master("local[*]")
+            .config(
+                "spark.jars",
+                "/usr/share/java/postgresql-42.7.10.jar"
+            )
+            .config(
+                "spark.driver.extraClassPath",
+                "/usr/share/java/postgresql-42.7.10.jar"
+            )
+            .getOrCreate()
+        )
+
+        logger.info("Spark Session created successfully.")
+
+        # --------------------------------------------------
+        # Step 1 : Extract
+        # --------------------------------------------------
+
+        logger.info("Step 1 : Extract")
+
+        extract_weather()
+
+        # --------------------------------------------------
+        # Step 2 : Transform
+        # --------------------------------------------------
+
+        logger.info("Step 2 : Transform")
+
+        weather_df = transform_weather(spark)
+
+        # --------------------------------------------------
+        # Step 3 : Load
+        # --------------------------------------------------
+
+        logger.info("Step 3 : Load")
+
+        load_weather(weather_df)
+
+        logger.info("ETL Pipeline completed successfully.")
+
+    except Exception as error:
+
+        logger.exception(f"Pipeline failed: {error}")
+
+    finally:
+
+        # --------------------------------------------------
+        # Stop Spark Session
+        # --------------------------------------------------
+
+        if spark:
+
+            logger.info("Stopping Spark Session...")
+
+            spark.stop()
+
+            logger.info("Spark Session stopped.")
+
+        logger.info("=" * 60)
+        logger.info("Weather ETL Pipeline Finished")
+        logger.info("=" * 60)
+
+
+# ==========================================================
+# Entry Point
+# ==========================================================
+
+if __name__ == "__main__":
+    main()

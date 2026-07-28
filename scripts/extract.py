@@ -3,42 +3,60 @@
 File Name : extract.py
 Project   : Weather Data Engineering Pipeline
 Author    : Arul G
-Purpose   : Extract weather data from the OpenWeather API
-            and store the raw JSON response locally.
+
+Purpose:
+    Extract weather data from the OpenWeather API,
+    validate the response, and store the raw JSON
+    locally.
 ============================================================
 """
 
+# ==========================================================
 # Standard Library Imports
+# ==========================================================
+
 import json
 from pathlib import Path
 from datetime import datetime
 
+# ==========================================================
 # Third-Party Imports
+# ==========================================================
+
 import requests
 
+# ==========================================================
 # Local Imports
+# ==========================================================
+
 from config.settings import API_KEY
 from scripts.logger import logger
+from scripts.validator import validate_weather_data
 
-
-# ----------------------------------------------------------
+# ==========================================================
 # API Configuration
-# ----------------------------------------------------------
+# ==========================================================
 
 CITY = "Chennai"
 
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+# ==========================================================
+# Extract Weather Data
+# ==========================================================
 
 
 def extract_weather():
     """
     Extract weather data from the OpenWeather API.
 
-    Workflow:
+    Workflow
+    --------
     1. Send API request
     2. Receive JSON response
-    3. Save JSON into data/raw folder
-    4. Return saved file path
+    3. Validate weather data
+    4. Save JSON into data/raw folder
+    5. Return saved file path
 
     Returns
     -------
@@ -49,7 +67,10 @@ def extract_weather():
 
     logger.info("Weather extraction started.")
 
-    # Request parameters sent to OpenWeather
+    # ------------------------------------------------------
+    # Request Parameters
+    # ------------------------------------------------------
+
     params = {
         "q": CITY,
         "appid": API_KEY,
@@ -58,27 +79,47 @@ def extract_weather():
 
     try:
 
-        # Send GET request to API
+        # --------------------------------------------------
+        # Send API Request
+        # --------------------------------------------------
+
         response = requests.get(
             BASE_URL,
             params=params,
             timeout=10
         )
 
-        # Raise an exception if request failed
         response.raise_for_status()
 
-        # Convert response into Python dictionary
+        logger.info("Weather data received successfully from API.")
+
+        # --------------------------------------------------
+        # Convert JSON Response
+        # --------------------------------------------------
+
         weather_data = response.json()
 
-        # Create raw data directory if missing
+        # --------------------------------------------------
+        # Validate Weather Data
+        # --------------------------------------------------
+
+        validate_weather_data(weather_data)
+
+        # --------------------------------------------------
+        # Create Raw Data Directory
+        # --------------------------------------------------
+
         raw_directory = Path("data/raw")
+
         raw_directory.mkdir(
             parents=True,
             exist_ok=True
         )
 
-        # Generate unique filename using timestamp
+        # --------------------------------------------------
+        # Generate Timestamp Filename
+        # --------------------------------------------------
+
         timestamp = datetime.now().strftime(
             "%Y%m%d_%H%M%S"
         )
@@ -88,7 +129,10 @@ def extract_weather():
             f"weather_{timestamp}.json"
         )
 
-        # Save JSON response to disk
+        # --------------------------------------------------
+        # Save JSON File
+        # --------------------------------------------------
+
         with open(
             file_path,
             "w",
@@ -115,6 +159,14 @@ def extract_weather():
 
         return None
 
+    except ValueError as error:
+
+        logger.exception(
+            f"Weather data validation failed: {error}"
+        )
+
+        return None
+
     except Exception as error:
 
         logger.exception(
@@ -124,9 +176,9 @@ def extract_weather():
         return None
 
 
-# ----------------------------------------------------------
+# ==========================================================
 # Script Entry Point
-# ----------------------------------------------------------
+# ==========================================================
 
 if __name__ == "__main__":
 
