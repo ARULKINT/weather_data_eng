@@ -28,6 +28,7 @@ Build fact_weather
 # Third-Party Imports
 # ==========================================================
 
+from pathlib import Path
 from pyspark.sql import SparkSession
 
 # ==========================================================
@@ -60,20 +61,52 @@ def main():
 
         logger.info("Creating Spark Session...")
 
+        # ==================================================
+        # PostgreSQL JDBC Driver
+        # ==================================================
+
+        jdbc_path = (
+            Path(__file__).resolve().parent.parent
+            / "drivers"
+            / "postgresql-42.7.13.jar"
+        )
+
+        logger.info(f"JDBC Path   : {jdbc_path}")
+        logger.info(f"JDBC Exists : {jdbc_path.exists()}")
+
+        if not jdbc_path.exists():
+            raise FileNotFoundError(
+                f"PostgreSQL JDBC Driver not found:\n{jdbc_path}"
+            )
+
+        jdbc_jar = str(jdbc_path.resolve())
+
+        # ==================================================
+        # Create Spark Session
+        # ==================================================
+
         spark = (
             SparkSession.builder
             .appName("Weather Data Engineering Pipeline")
             .master("local[*]")
-            .config(
-                "spark.jars",
-                "/usr/share/java/postgresql-42.7.10.jar"
-            )
-            .config(
-                "spark.driver.extraClassPath",
-                "/usr/share/java/postgresql-42.7.10.jar"
-            )
+
+            # PostgreSQL JDBC Driver
+            .config("spark.jars", jdbc_jar)
+            .config("spark.driver.extraClassPath", jdbc_jar)
+
+            # Spark Configuration
+            .config("spark.sql.shuffle.partitions", "4")
+            .config("spark.sql.warehouse.dir", str(Path.cwd() / "spark-warehouse"))
+
+            # Windows Compatibility
+            .config("spark.hadoop.hadoop.native.lib", "false")
+            .config("spark.driver.host", "127.0.0.1")
+            .config("spark.driver.bindAddress", "127.0.0.1")
+
             .getOrCreate()
         )
+
+        spark.sparkContext.setLogLevel("ERROR")
 
         logger.info("Spark Session created successfully.")
 
@@ -105,7 +138,7 @@ def main():
 
         for raw_file in raw_files:
 
-            logger.info("Processing %s", raw_file.name)
+            logger.info(f"Processing {raw_file.name}")
 
             weather_df = transform_weather(
                 spark,
@@ -160,7 +193,7 @@ def main():
 
     finally:
 
-        if spark:
+        if spark is not None:
 
             logger.info("Stopping Spark Session...")
 

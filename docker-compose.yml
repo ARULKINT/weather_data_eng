@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # PostgreSQL Data Warehouse Container
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: weather_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-weather_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-weather_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Weather PySpark ETL Pipeline Service Container
+  # ============================================================
+  weather-etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather_etl_pipeline
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+    driver: local
