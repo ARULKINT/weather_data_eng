@@ -1,181 +1,93 @@
 """
-Module: dim_weather.py
+============================================================
+File Name : test_dim_city.py
+Project   : Weather Data Engineering Pipeline
+Author    : Arul G
 
-Purpose
--------
-Build and maintain the Weather Dimension (dim_weather).
-
-Responsibilities
-----------------
-1. Read weather information from the weather_data staging table.
-2. Remove duplicate weather records.
-3. Compare against the existing Weather Dimension.
-4. Insert only new weather records.
-5. Return the newly inserted records.
-
-This module performs an incremental dimension load, making the ETL
-pipeline safe to execute multiple times without creating duplicates.
+Purpose:
+    Integration test for the City Dimension (dim_city) loader.
+    Verifies connection to PostgreSQL, incremental LEFT ANTI JOIN,
+    and row insertion into dim_city.
+============================================================
 """
 
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col
+from pathlib import Path
+from pyspark.sql import SparkSession
 
-from scripts.logger import logger
-from scripts.warehouse.database import read_table, write_table
+from scripts.warehouse.dim_city import load_dim_city
 
 
-def load_dim_weather(spark: SparkSession) -> DataFrame:
+def create_spark_session() -> SparkSession:
     """
-    Load new weather records into the Weather Dimension.
-
-    Workflow
-    --------
-    1. Read weather_data staging table.
-    2. Extract unique weather records.
-    3. Read existing dim_weather table.
-    4. Identify new weather records using a LEFT ANTI JOIN.
-    5. Insert only new weather records into dim_weather.
-    6. Return the newly inserted records.
-
-    Parameters
-    ----------
-    spark : SparkSession
-        Active Spark session.
-
-    Returns
-    -------
-    DataFrame
-        DataFrame containing newly inserted weather records.
+    Create a local SparkSession configured with the PostgreSQL JDBC driver.
+    Dynamically locates the jar file across Windows and Linux environments.
     """
+    jdbc_path = (
+        Path(__file__).resolve().parent.parent
+        / "drivers"
+        / "postgresql-42.7.13.jar"
+    )
 
-    logger.info("=" * 80)
-    logger.info("Starting Weather Dimension Load")
-    logger.info("=" * 80)
+    if not jdbc_path.exists():
+        fallback_jar = Path("/usr/share/java/postgresql-42.7.10.jar")
+        if fallback_jar.exists():
+            jdbc_jar = str(fallback_jar)
+        else:
+            raise FileNotFoundError(f"PostgreSQL JDBC Driver not found at: {jdbc_path}")
+    else:
+        jdbc_jar = str(jdbc_path.resolve())
+
+    import os
+    builder = (
+        SparkSession.builder
+        .appName("Test City Dimension")
+        .master("local[*]")
+        .config("spark.driver.extraClassPath", jdbc_jar)
+        .config("spark.executor.extraClassPath", jdbc_jar)
+        .config("spark.sql.shuffle.partitions", "2")
+        .config("spark.hadoop.hadoop.native.lib", "false")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+    )
+    if os.name != "nt":
+        builder = builder.config("spark.jars", jdbc_jar)
+    spark = builder.getOrCreate()
+    spark.sparkContext.setLogLevel("ERROR")
+    return spark
+
+
+def main() -> None:
+    spark = None
 
     try:
+        spark = create_spark_session()
 
-        # ==========================================================
-        # STEP 1
-        # Read staging table.
-        # ==========================================================
-        weather_df = read_table(
-            spark=spark,
-            table_name="weather_data",
-        )
+        city_df = load_dim_city(spark)
 
-        # ==========================================================
-        # STEP 2
-        # Extract unique weather information.
-        # ==========================================================
-        weather_dimension_df = (
-            weather_df
-            .select(
-                "weather",
-                "description",
-            )
-            .dropDuplicates()
-        )
+        print("\n" + "=" * 70)
+        print("CITY DIMENSION TEST")
+        print("=" * 70)
 
-        logger.info(
-            "Unique weather records extracted: %d",
-            weather_dimension_df.count(),
-        )
+        count = city_df.count()
+        print(f"Inserted Rows : {count}")
 
-        # ==========================================================
-        # STEP 3
-        # Read existing Weather Dimension.
-        # ==========================================================
-        dim_weather_df = read_table(
-            spark=spark,
-            table_name="dim_weather",
-        )
+        if count > 0:
+            city_df.show(truncate=False)
+        else:
+            print("No new city records.")
 
-        logger.info(
-            "Existing weather records: %d",
-            dim_weather_df.count(),
-        )
-
-        # ==========================================================
-        # STEP 4
-        # Find only new weather records.
-        #
-        # Match using BOTH weather and description because the
-        # combination is unique.
-        # ==========================================================
-        new_weather_df = weather_dimension_df.join(
-            dim_weather_df,
-            (
-                (weather_dimension_df.weather == dim_weather_df.weather)
-                &
-                (
-                    weather_dimension_df.description
-                    == dim_weather_df.description
-                )
-            ),
-            how="left_anti",
-        )
-
-        # ==========================================================
-        # STEP 5
-        # Arrange columns.
-        # ==========================================================
-        new_weather_df = (
-            new_weather_df
-            .select(
-                "weather",
-                "description",
-            )
-            .orderBy(col("weather"))
-        )
-
-        new_weather_count = new_weather_df.count()
-
-        logger.info(
-            "New weather records identified: %d",
-            new_weather_count,
-        )
-
-        # ==========================================================
-        # STEP 6
-        # Exit if no new weather records exist.
-        # ==========================================================
-        if new_weather_count == 0:
-
-            logger.info(
-                "No new weather records found. Skipping insert."
-            )
-
-            return new_weather_df
-
-        # ==========================================================
-        # STEP 7
-        # Preview new weather records.
-        # ==========================================s================
-        logger.info("Preview of new weather records:")
-
-        new_weather_df.show(truncate=False)
-
-        # ==========================================================
-        # STEP 8
-        # Insert into PostgreSQL.
-        # ==========================================================
-        write_table(
-            dataframe=new_weather_df,
-            table_name="dim_weather",
-        )
-
-        logger.info(
-            "Successfully loaded %d new weather records.",
-            new_weather_count,
-        )
-
-        return new_weather_df
+        print("=" * 70)
+        print("TEST COMPLETED SUCCESSFULLY")
+        print("=" * 70)
 
     except Exception as error:
-
-        logger.exception(
-            "Weather Dimension loading failed: %s",
-            error,
-        )
-
+        print(f"\nTest Failed : {error}")
         raise
+
+    finally:
+        if spark:
+            spark.stop()
+
+
+if __name__ == "__main__":
+    main()

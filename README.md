@@ -1,68 +1,37 @@
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![PySpark](https://img.shields.io/badge/PySpark-4.x-orange)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Data%20Warehouse-blue)
-![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
+![PySpark](https://img.shields.io/badge/PySpark-4.x-orange?logo=apachespark)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-success?logo=githubactions)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 # 🌦️ Weather Data Engineering Pipeline & Star Schema Data Warehouse
 
-A production-style, end-to-end Weather ETL (Extract, Transform, Load) and Data Warehousing pipeline. It extracts real-time weather data from the **OpenWeather REST API**, validates and normalizes raw JSON payloads, flattens and transforms data using **PySpark**, loads observations into a **PostgreSQL** staging table, and builds an incremental **Star Schema Data Warehouse** (`dim_city`, `dim_weather`, `fact_weather`).
+A production-grade, end-to-end Weather ETL (Extract, Transform, Load) and Data Warehousing pipeline. It extracts real-time meteorological observations from the **OpenWeatherMap REST API**, enforces rigorous pre-ingestion data quality constraints, flattens multi-layered nested JSON using **Apache Spark (PySpark)**, writes observations into a **PostgreSQL** staging table via high-performance JDBC, and incrementally populates an audit-logged **Kimball Star Schema Data Warehouse** (`dim_city`, `dim_weather`, `fact_weather`) utilizing **LEFT ANTI JOINs** to guarantee absolute idempotency.
 
-Built by **Arul G** using Python, PySpark, PostgreSQL, Docker, and Power BI readiness, following modern Data Engineering principles.
-
----
-
-## 📌 Table of Contents
-
-- [📖 Project Overview](#-project-overview)
-- [✨ Key Features](#-key-features)
-- [🛠️ Tech Stack](#-tech-stack)
-- [🏗️ System Architecture & Data Flow](#️-system-architecture--data-flow)
-- [📂 Detailed Repository & File Structure](#-detailed-repository--file-structure)
-- [🗄️ Database Schema & Star Schema Model](#️-database-schema--star-schema-model)
-- [🔄 Pipeline Execution Workflow](#-pipeline-execution-workflow)
-- [💻 Installation & Operational Guide](#-installation--operational-guide)
-- [🐳 Docker Deployment](#-docker-deployment)
-- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
-- [📚 Supporting Documentation](#-supporting-documentation)
-- [👨‍💻 Author & Acknowledgments](#-author--acknowledgments)
-- [📄 License](#-license)
+Built by **Arul G** with enterprise-level architecture, automated CI/CD, and Power BI / Tableau analytical readiness.
 
 ---
 
-## 📖 Project Overview
+## 📚 Complete Engineering Documentation Suite
 
-The **Weather Data Engineering Pipeline** is engineered to automate the collection, validation, processing, and analytical structuring of weather data across major Indian urban hubs (`Chennai`, `Delhi`, `Mumbai`, `Bangalore`, `Hyderabad`, `Pune`, `Kolkata`).
+This project includes a comprehensive 10-chapter documentation library covering every aspect of the system:
 
-### Why this project?
-Raw API data is often nested, unstructured, and transient. This pipeline converts live JSON responses into an incremental, audit-logged Data Warehouse structured optimized for OLAP analytics, time-series aggregation, and Business Intelligence dashboards (e.g., Power BI, Tableau).
+| Chapter | Document Title | Primary Focus |
+| :---: | :--- | :--- |
+| **01** | [**Project Overview**](docs/01_project_overview.md) | Executive summary, business goals, feature matrix, and architecture layout |
+| **02** | [**Architecture & Design**](docs/02_architecture_and_design.md) | Component diagrams, PySpark engine design, and Kimball Star Schema modeling |
+| **03** | [**Data Dictionary & Schema**](docs/03_data_dictionary_and_schema.md) | DDL tables, types, surrogate keys, nullability, and analytical views |
+| **04** | [**Setup & Installation Guide**](docs/04_setup_and_installation_guide.md) | Prerequisites (Python, JDK 17, PostgreSQL), venv setup, and Docker quickstart |
+| **05** | [**Pipeline Execution Guide**](docs/05_pipeline_execution_guide.md) | 1-click execution (`.ps1`, `.bat`, CLI), stage-by-stage lifecycle, and outputs |
+| **06** | [**Data Quality & Validation Framework**](docs/06_data_quality_and_validation_framework.md) | Geospatial bounding, atmospheric boundary rules, and deduplication logic |
+| **07** | [**SQL Analytics & Warehouse Queries**](docs/07_sql_analytics_and_warehouse_queries.md) | Production views, window functions, moving averages, and heat index analytics |
+| **08** | [**Testing & QA Strategy**](docs/08_testing_and_qa_strategy.md) | Unit test suite, PySpark in-memory tests, integration tests, and GitHub Actions CI |
+| **09** | [**Deployment & Orchestration**](docs/09_deployment_and_orchestration.md) | Docker Compose, Windows Task Scheduler, Linux crontab, and Apache Airflow DAG |
+| **10** | [**Contributing & Developer Guide**](docs/10_contributing_and_developer_guide.md) | Coding standards, adding new cities, PR checklist, and Git workflow |
 
----
-
-## ✨ Key Features
-
-- 🌍 **Automated API Data Extraction**: Ingests real-time weather metrics from OpenWeather API.
-- ✅ **Strict Schema & Range Validation**: Ensures latitude, longitude, temperature, humidity, pressure, and wind speed values are valid prior to storage.
-- ⚡ **Scalable PySpark Data Transformation**: Handles multi-line JSON parsing, schema enforcement, column casting, and nested field flattening.
-- 🗄️ **Incremental Star Schema Data Warehouse**: Implements **Left Anti Joins** to process dimension updates (`dim_city`, `dim_weather`) and fact observations (`fact_weather`) without duplicates.
-- 📝 **Centralized Logging Engine**: Unified logger broadcasting to console and `logs/pipeline.log`.
-- 🐳 **Full Containerization**: Dockerfile and Multi-Container Docker Compose setup with PostgreSQL 16.
-- 📊 **BI & Analytics Ready**: Includes database views for daily aggregation and latest city observations.
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology / Framework | Description |
-|----------|------------------------|-------------|
-| **Language** | Python 3.10 - 3.14 | Core pipeline scripting & automation |
-| **Big Data Engine** | PySpark 4.x | Distributed data transformation & flattening |
-| **Database / OLAP** | PostgreSQL 16 | Relational Data Warehouse (Staging + Star Schema) |
-| **Database Driver** | PostgreSQL JDBC 42.7.13 | High-performance Java database connection |
-| **Data Source** | OpenWeather API | Real-time weather data provider |
-| **Containerization** | Docker & Docker Compose | Application containerization & DB orchestration |
-| **Environment Mgmt** | `python-dotenv` | Environment variable management |
-| **Visualization** | Power BI | Dashboard reporting integration |
+*Additional Reference Docs:*
+- [Architecture Technical Notes](docs/ARCHITECTURE.md) | [OpenWeather API Reference](docs/API_DOCUMENTATION.md) | [Operational & Maintenance Runbook](docs/OPERATIONAL_GUIDE.md) | [Changelog](docs/CHANGELOG.md)
 
 ---
 
@@ -70,239 +39,209 @@ Raw API data is often nested, unstructured, and transient. This pipeline convert
 
 ```
                                   ┌─────────────────────────┐
-                                  │     OpenWeather API     │
+                                  │   OpenWeatherMap API    │
                                   └────────────┬────────────┘
-                                               │ HTTP GET
+                                               │ HTTP GET (REST)
                                                ▼
                                   ┌─────────────────────────┐
-                                  │   scripts/extract.py    │
+                                  │   scripts/validator.py  │  ◄── Boundary & Range Checks
                                   └────────────┬────────────┘
-                                               │ Raw JSON
+                                               │ Validated JSON
                                                ▼
                                   ┌─────────────────────────┐
-                                  │  scripts/validator.py   │
+                                  │     Local Data Lake     │  ◄── data/raw/*.json
                                   └────────────┬────────────┘
-                                               │ Validated Data
+                                               │ Multi-line JSON
                                                ▼
                                   ┌─────────────────────────┐
-                                  │  scripts/transform.py   │ ◄── PySpark Engine
+                                  │   scripts/transform.py  │  ◄── PySpark Engine (Flatten & Cast)
                                   └────────────┬────────────┘
-                                               │ Clean Spark DataFrame
+                                               │ Clean DataFrame
                                                ▼
                                   ┌─────────────────────────┐
-                                  │    scripts/load.py      │
+                                  │    scripts/load.py      │  ◄── JDBC Writer (append)
                                   └────────────┬────────────┘
-                                               │ JDBC Write
+                                               │
                                                ▼
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
  │                              PostgreSQL Data Warehouse                                 │
  │                                                                                        │
- │ ┌──────────────────┐    LEFT ANTI JOIN     ┌──────────────────┐                        │
- │ │     dim_city     │ ◄───────────────────► │   weather_data   │ (Staging Table)        │
- │ └──────────────────┘                       └────────┬─────────┘                        │
- │ ┌──────────────────┐                                │                                  │
- │ │   dim_weather    │ ◄──────────────────────────────┤                                  │
- │ └──────────────────┘                                ▼                                  │
- │                                            ┌──────────────────┐                        │
- │                                            │   fact_weather   │ (Fact Table)           │
- │                                            └──────────────────┘                        │
+ │  ┌──────────────────────┐   LEFT ANTI JOIN   ┌──────────────────────┐                  │
+ │  │ Staging: weather_data │ ─────────────────► │  Dimension: dim_city │ (city_id PK)     │
+ │  └──────────┬───────────┘                    └──────────────────────┘                  │
+ │             │                                                                          │
+ │             │               LEFT ANTI JOIN   ┌──────────────────────┐                  │
+ │             ├──────────────────────────────► │Dimension: dim_weather│ (weather_id PK)  │
+ │             │                                └──────────────────────┘                  │
+ │             ▼                                                                          │
+ │     Surrogate Lookup & LEFT ANTI JOIN ────► ┌──────────────────────┐                  │
+ │                                             │  Fact: fact_weather  │ (surrogate keys)  │
+ │                                             └──────────────────────┘                  │
  └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📂 Detailed Repository & File Structure
+## 🗄️ Kimball Star Schema Model
 
-```text
-weather_etl_api/
-├── .env.example                  # Environment variables template
-├── .gitignore                    # Git exclusion rules
-├── Dockerfile                    # Containerization instructions (Python + Java OpenJDK)
-├── docker-compose.yml            # Multi-container orchestration (PostgreSQL + ETL)
-├── README.md                     # Master project documentation
-├── requirements.txt              # Python package dependencies
-├── my_history.txt                # CLI command execution logs & setup notes
-│
-├── config/                       # Configuration Module
-│   ├── __init__.py
-│   └── settings.py               # Environment loader, DB credentials, API config, city list
-│
-├── data/                         # Data Storage
-│   └── raw/                      # Raw API JSON payloads stored by timestamp
-│
-├── database/                     # Database Schema DDL
-│   └── schema.sql                # Table definitions, constraints, indexes, and views
-│
-├── docs/                         # Extended Technical Documentation
-│   ├── ARCHITECTURE.md           # Pipeline architecture & PySpark design specs
-│   ├── API_DOCUMENTATION.md      # API endpoints, response schemas, & validation rules
-│   ├── OPERATIONAL_GUIDE.md      # Setup, execution, SQL verification, & troubleshooting
-│   └── CHANGELOG.md              # Project history & release milestones
-│
-├── drivers/                      # Database Connectors
-│   └── postgresql-42.7.13.jar    # PostgreSQL JDBC Driver for PySpark
-│
-├── logs/                         # Application Logs
-│   └── pipeline.log              # Persistent log outputs
-│
-├── scripts/                      # Core Pipeline Code
-│   ├── extract.py                # OpenWeather API data extractor
-│   ├── transform.py              # PySpark JSON flattener & transformer
-│   ├── load.py                   # PostgreSQL staging table loader
-│   ├── validator.py              # Raw JSON validation module
-│   ├── logger.py                 # Centralized logging configuration
-│   ├── main.py                   # Main pipeline entrypoint orchestrator
-│   └── warehouse/                # Data Warehouse Dimensional Loaders
-│       ├── __init__.py
-│       ├── database.py           # Reusable Spark JDBC read/write helper
-│       ├── dim_city.py           # Incremental City Dimension loader
-│       ├── dim_weather.py        # Incremental Weather Dimension loader
-│       └── fact_weather.py       # Incremental Fact Weather observation loader
-│
-└── tests/                        # Unit & Integration Tests
-    ├── test_dim_city.py          # City Dimension test script
-    ├── test_dim_weather.py       # Weather Dimension test script
-    └── test_fact_weather.py      # Fact Weather test script
+```
+                    ┌────────────────────────┐
+                    │        dim_city        │
+                    ├────────────────────────┤
+                    │ city_id (PK)           │
+                    │ city_name (UK)         │
+                    │ latitude               │
+                    │ longitude              │
+                    │ created_at             │
+                    └───────────┬────────────┘
+                                │ 1
+                                │
+                                │ *
+ ┌────────────────────────┐     │     ┌────────────────────────┐
+ │      dim_weather       │     │     │      fact_weather      │
+ ├────────────────────────┤     │     ├────────────────────────┤
+ │ weather_id (PK)        │ 1   │   * │ fact_id (PK)           │
+ │ weather                ├─────┴─────┤ city_id (FK)           │
+ │ description            │           │ weather_id (FK)        │
+ │ created_at             │           │ temperature            │
+ └────────────────────────┘           │ humidity               │
+                                      │ pressure               │
+                                      │ wind_speed             │
+                                      │ collected_at           │
+                                      │ created_at             │
+                                      └────────────────────────┘
 ```
 
 ---
 
-## 🗄️ Database Schema & Star Schema Model
-
-The data warehouse uses a **Star Schema** to optimize query performance and reporting analytical workloads:
-
-```
-                    ┌──────────────────────────────┐
-                    │           dim_city           │
-                    ├──────────────────────────────┤
-                    │ city_id (PK, SERIAL)         │
-                    │ city_name (VARCHAR, UNIQUE)  │
-                    │ latitude (DOUBLE PRECISION)  │
-                    │ longitude (DOUBLE PRECISION) │
-                    │ created_at (TIMESTAMP)       │
-                    └──────────────┬───────────────┘
-                                   │ 1
-                                   │
-                                   │ N
-                    ┌──────────────┴───────────────┐
-                    │          fact_weather        │
-                    ├──────────────────────────────┤
-                    │ fact_id (PK, SERIAL)         │
-                    │ city_id (FK)                 │
-                    │ weather_id (FK)              │
-                    │ temperature (DOUBLE)         │
-                    │ humidity (INTEGER)           │
-                    │ pressure (INTEGER)           │
-                    │ wind_speed (DOUBLE)          │
-                    │ collected_at (TIMESTAMP)     │
-                    │ created_at (TIMESTAMP)       │
-                    └──────────────┬───────────────┘
-                                   │ N
-                                   │
-                                   │ 1
-                    ┌──────────────┴───────────────┐
-                    │          dim_weather         │
-                    ├──────────────────────────────┤
-                    │ weather_id (PK, SERIAL)      │
-                    │ weather (VARCHAR)            │
-                    │ description (VARCHAR)        │
-                    │ created_at (TIMESTAMP)       │
-                    └──────────────────────────────┘
-```
-
----
-
-## 💻 Installation & Operational Guide
+## 🚀 Quickstart Guide
 
 ### 1. Prerequisites
-- **Python**: Version 3.10 - 3.14
-- **Java Runtime**: OpenJDK 17 or Java 21 (Required for PySpark)
-- **PostgreSQL**: Version 14+ (Local installation or Docker container)
+- Python 3.10+
+- Java JDK 17 (Eclipse Temurin or OpenJDK) with `JAVA_HOME` set
+- PostgreSQL 15+ (Local or Docker)
 
-### 2. Quick Setup
-
-```bash
-# Clone the repository
+### 2. Environment Setup
+```powershell
+# 1. Clone repository
 git clone https://github.com/ARULKINT/weather_data_eng.git
 cd weather_data_eng
 
-# Create and activate virtual environment
+# 2. Configure .env file
+Copy-Item .env.example .env
+# Edit .env with your OPENWEATHER_API_KEY and DB credentials
+
+# 3. Initialize Python Virtual Environment
 python -m venv venv
-# On Windows:
 .\venv\Scripts\Activate.ps1
-# On Linux/macOS:
-source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Create environment configuration
-cp .env.example .env
 ```
 
 ### 3. Database Initialization
-Run the DDL script to create the staging, dimension, and fact tables:
 ```bash
+# Initialize PostgreSQL schema
 psql -h localhost -U postgres -d weather_db -f database/schema.sql
 ```
+*(Or use Docker: `docker compose up -d postgres`)*
 
-### 4. Run the Pipeline
-```bash
-python scripts/main.py
+### 4. Run the Pipeline (1-Click)
+```powershell
+# Option A: PowerShell Turnkey Script
+.\run_pipeline.ps1
+
+# Option B: Windows Batch
+run_pipeline.bat
+
+# Option C: Direct Python
+python -m scripts.main
 ```
 
 ---
 
-## 🐳 Docker Deployment
+## 🧪 Testing and Quality Assurance
 
-To run PostgreSQL and the ETL pipeline together in containerized isolation:
+Run the automated test suite covering unit validation and PySpark transformations:
 
-```bash
-# Build and start services
-docker-compose up --build -d
+```powershell
+# 1. Fast unit tests (validator & settings)
+python -m unittest tests/test_validator.py tests/test_settings.py
 
-# Check pipeline logs
-docker logs -f weather_etl_pipeline
+# 2. PySpark schema transformation unit tests
+python -m unittest tests/test_transform.py
 
-# Stop services
-docker-compose down
+# 3. Complete test suite discovery
+python -m unittest discover tests
 ```
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## 📂 Repository File Tree
 
-Run the test suite to verify dimensional warehouse loading logic:
-
-```bash
-python tests/test_dim_city.py
-python tests/test_dim_weather.py
-python tests/test_fact_weather.py
+```
+weather_etl_api/
+├── .github/workflows/ci.yml       # GitHub Actions CI workflow
+├── config/
+│   ├── __init__.py
+│   └── settings.py               # Central environment configuration
+├── data/
+│   └── raw/                      # Raw JSON data lake storage
+├── database/
+│   └── schema.sql                # Complete PostgreSQL DDL (staging, dims, fact, views)
+├── docs/                         # 10-chapter engineering documentation library
+│   ├── 01_project_overview.md
+│   ├── 02_architecture_and_design.md
+│   ├── 03_data_dictionary_and_schema.md
+│   ├── 04_setup_and_installation_guide.md
+│   ├── 05_pipeline_execution_guide.md
+│   ├── 06_data_quality_and_validation_framework.md
+│   ├── 07_sql_analytics_and_warehouse_queries.md
+│   ├── 08_testing_and_qa_strategy.md
+│   ├── 09_deployment_and_orchestration.md
+│   └── 10_contributing_and_developer_guide.md
+├── drivers/
+│   └── postgresql-42.7.13.jar    # Certified PostgreSQL JDBC driver
+├── logs/
+│   └── pipeline.log              # Structured timestamped runtime logs
+├── scripts/
+│   ├── extract.py                # REST API extraction & validation
+│   ├── transform.py              # PySpark flattening & type conversion
+│   ├── load.py                   # PySpark JDBC staging table writer
+│   ├── logger.py                 # Centralized logging engine
+│   ├── main.py                   # Master pipeline orchestrator
+│   ├── validator.py              # Pre-ingestion data quality validator
+│   └── warehouse/
+│       ├── database.py           # Reusable Spark JDBC helpers
+│       ├── dim_city.py           # City Dimension incremental loader
+│       ├── dim_weather.py        # Weather Dimension incremental loader
+│       └── fact_weather.py       # Fact table surrogate key resolver & loader
+├── tests/
+│   ├── test_config.py            # Configuration tests
+│   ├── test_dim_city.py          # City dimension integration test
+│   ├── test_dim_weather.py       # Weather dimension integration test
+│   ├── test_fact_weather.py      # Fact table integration test
+│   ├── test_transform.py         # PySpark transformation unit test
+│   └── test_validator.py         # Data quality validator unit test
+├── .env.example                  # Environment configuration template
+├── docker-compose.yml            # Multi-service container orchestration
+├── Dockerfile                    # Container image definition
+├── pyproject.toml                # Project metadata & test configuration
+├── README.md                     # Central project presentation
+├── requirements.txt              # Pinned Python package dependencies
+├── run_pipeline.bat              # Turnkey Windows Batch execution script
+└── run_pipeline.ps1              # Turnkey PowerShell execution script
 ```
 
 ---
 
-## 📚 Supporting Documentation
+## 👨‍💻 Author & Contact
 
-For deeper technical details, explore the dedicated documentation in the [`docs/`](file:///c:/drive%20g/Projects_july/weather_etl_api/docs) directory:
-
-- 🏛️ [**Architecture Specification**](file:///c:/drive%20g/Projects_july/weather_etl_api/docs/ARCHITECTURE.md): Technical deep dive into PySpark workflows, Left Anti Joins, and state design.
-- 🌐 [**API Documentation**](file:///c:/drive%20g/Projects_july/weather_etl_api/docs/API_DOCUMENTATION.md): OpenWeather API specs, payload structures, schema mapping matrix, and validation rules.
-- 🛠️ [**Operational Guide**](file:///c:/drive%20g/Projects_july/weather_etl_api/docs/OPERATIONAL_GUIDE.md): Complete operations, troubleshooting matrix, and database verification queries.
-- 📝 [**Changelog**](file:///c:/drive%20g/Projects_july/weather_etl_api/docs/CHANGELOG.md): Project release history and feature milestones.
-
----
-
-## 👨‍💻 Author & Acknowledgments
-
-**Arul G**
-- **Degree**: B.Tech Computer Science Engineering
+**Arul G**  
 - **Role**: Data Engineer
 - **GitHub**: [@ARULKINT](https://github.com/ARULKINT)
-- **Email**: aruldme004@gmail.com
+- **Repository**: [ARULKINT/weather_data_eng](https://github.com/ARULKINT/weather_data_eng)
 
 ---
 
 ## 📄 License
 
-This project is open-source software licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

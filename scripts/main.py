@@ -85,26 +85,30 @@ def main():
         # Create Spark Session
         # ==================================================
 
-        spark = (
+        builder = (
             SparkSession.builder
             .appName("Weather Data Engineering Pipeline")
             .master("local[*]")
 
             # PostgreSQL JDBC Driver
-            .config("spark.jars", jdbc_jar)
             .config("spark.driver.extraClassPath", jdbc_jar)
+            .config("spark.executor.extraClassPath", jdbc_jar)
 
             # Spark Configuration
             .config("spark.sql.shuffle.partitions", "4")
             .config("spark.sql.warehouse.dir", str(Path.cwd() / "spark-warehouse"))
 
-            # Windows Compatibility
+            # Cross-Platform / Windows Compatibility
             .config("spark.hadoop.hadoop.native.lib", "false")
             .config("spark.driver.host", "127.0.0.1")
             .config("spark.driver.bindAddress", "127.0.0.1")
-
-            .getOrCreate()
         )
+
+        import os
+        if os.name != "nt":
+            builder = builder.config("spark.jars", jdbc_jar)
+
+        spark = builder.getOrCreate()
 
         spark.sparkContext.setLogLevel("ERROR")
 
